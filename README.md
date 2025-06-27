@@ -35,13 +35,8 @@ Open `index.html` in your browser to use the app locally.
 - [html5-qrcode](https://github.com/mebjas/html5-qrcode) (loaded via CDN)
 
 ## Screenshots
-<img width="1800" alt="Screenshot 2025-06-27 at 5 17 04 AM" src="https://github.com/user-attachments/assets/346852c3-49bc-4b21-9186-be9c91f26ef3" />
 <img width="1800" alt="Screenshot 2025-06-27 at 2 24 58 PM" src="https://github.com/user-attachments/assets/01652133-7580-422b-8203-238af1e758cc" />
 <img width="1800" alt="Screenshot 2025-06-27 at 2 25 40 PM" src="https://github.com/user-attachments/assets/2c91ef83-6585-421c-a9ad-b53cee7d35e3" />
-
-
-
-
 
 
 ## License
