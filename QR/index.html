@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .scanner-modes {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .mode-btn:not(.active) {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #e9ecef;
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .scanner-section {
+            margin-bottom: 30px;
+        }
+
+        .scanner-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        #qr-reader {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .file-upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: #4facfe;
+            background: #f0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .file-upload-area.drag-over {
+            border-color: #00f2fe;
+            background: #e6f7ff;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d9ff;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .stop-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .scanner-modes {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mode-btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 QR Scanner</h1>
+            <p>Scan QR codes using your camera or upload an image</p>
+        </div>
+        
+        <div class="content">
+            <div class="scanner-modes">
+                <button class="mode-btn active" id="camera-mode-btn">📷 Camera Scanner</button>
+                <button class="mode-btn" id="file-mode-btn">📁 File Upload</button>
+            </div>
+
+            <!-- Camera Scanner Section -->
+            <div class="scanner-section" id="camera-section">
+                <h3>📹 Camera Scanner</h3>
+                <div class="controls">
+                    <button class="control-btn start-btn" id="start-btn">Start Camera</button>
+                    <button class="control-btn stop-btn hidden" id="stop-btn">Stop Camera</button>
+                </div>
+                <div id="qr-reader"></div>
+                <div class="status-message status-info" id="camera-status">
+                    Click "Start Camera" to begin scanning QR codes
+                </div>
+            </div>
+
+            <!-- File Upload Section -->
+            <div class="scanner-section hidden" id="file-section">
+                <h3>📁 Upload Image</h3>
+                <div class="file-upload-area" id="file-upload-area">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">Click to select an image or drag & drop</div>
+                    <div class="upload-hint">Supports JPG, PNG, GIF formats</div>
+                </div>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+
+            <!-- Results Section -->
+            <div class="result-section hidden" id="result-section">
+                <h3>✅ Scan Result</h3>
+                <div class="result-content" id="result-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+
+        // DOM Elements
+        const cameraModeBtn = document.getElementById('camera-mode-btn');
+        const fileModeBtn = document.getElementById('file-mode-btn');
+        const cameraSection = document.getElementById('camera-section');
+        const fileSection = document.getElementById('file-section');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const cameraStatus = document.getElementById('camera-status');
+        const resultSection = document.getElementById('result-section');
+        const resultContent = document.getElementById('result-content');
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const fileInput = document.getElementById('file-input');
+
+        // Mode switching
+        cameraModeBtn.addEventListener('click', () => switchMode('camera'));
+        fileModeBtn.addEventListener('click', () => switchMode('file'));
+
+        function switchMode(mode) {
+            if (mode === 'camera') {
+                cameraModeBtn.classList.add('active');
+                fileModeBtn.classList.remove('active');
+                cameraSection.classList.remove('hidden');
+                fileSection.classList.add('hidden');
+            } else {
+                fileModeBtn.classList.add('active');
+                cameraModeBtn.classList.remove('active');
+                fileSection.classList.remove('hidden');
+                cameraSection.classList.add('hidden');
+            }
+            
+            // Stop camera if switching away from camera mode
+            if (mode !== 'camera' && isScanning) {
+                stopScanning();
+            }
+        }
+
+        // Camera scanning functions
+        startBtn.addEventListener('click', startScanning);
+        stopBtn.addEventListener('click', stopScanning);
+
+        function startScanning() {
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            
+            updateCameraStatus('Starting camera...', 'info');
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).then(() => {
+                isScanning = true;
+                startBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+                updateCameraStatus('Camera is active. Point at a QR code to scan.', 'success');
+            }).catch(err => {
+                console.error('Unable to start scanning:', err);
+                updateCameraStatus('Failed to start camera. Please check permissions.', 'error');
+            });
+        }
+
+        function stopScanning() {
+            if (html5QrcodeScanner && isScanning) {
+                html5QrcodeScanner.stop().then(() => {
+                    isScanning = false;
+                    startBtn.classList.remove('hidden');
+                    stopBtn.classList.add('hidden');
+                    updateCameraStatus('Camera stopped. Click "Start Camera" to scan again.', 'info');
+                }).catch(err => {
+                    console.error('Error stopping scanner:', err);
+                });
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            displayResult(decodedText);
+            // Optionally stop scanning after successful scan
+            // stopScanning();
+        }
+
+        function onScanFailure(error) {
+            // Handle scan failure silently - this is called frequently during scanning
+        }
+
+        function updateCameraStatus(message, type) {
+            cameraStatus.textContent = message;
+            cameraStatus.className = `status-message status-${type}`;
+        }
+
+        // File upload functionality
+        fileUploadArea.addEventListener('click', () => fileInput.click());
+        fileUploadArea.addEventListener('dragover', handleDragOver);
+        fileUploadArea.addEventListener('dragleave', handleDragLeave);
+        fileUploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            fileUploadArea.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file.');
+                return;
+            }
+
+            const html5QrCode = new Html5Qrcode("temp-element");
+            
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    displayResult(decodedText);
+                })
+                .catch(err => {
+                    console.error('Error scanning file:', err);
+                    alert('No QR code found in the selected image. Please try another image.');
+                });
+        }
+
+        function displayResult(result) {
+            resultContent.textContent = result;
+            resultSection.classList.remove('hidden');
+            
+            // Scroll to result
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Create temporary element for file scanning
+        const tempElement = document.createElement('div');
+        tempElement.id = 'temp-element';
+        tempElement.style.display = 'none';
+        document.body.appendChild(tempElement);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (isScanning) {
+                stopScanning();
+            }
+        });
+    </script>
+</body>
+</html>
